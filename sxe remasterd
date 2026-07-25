@@ -1,4 +1,3 @@
-
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players = game:GetService("Players")
@@ -714,139 +713,161 @@ Keybinds = {
 priorityList = {
     "Headless Horseman",
     "Signore Carapace",
+    "Arcadragon",
+    "Elefanto Frigo",
     "Strawberry Elephant",
     "John Pork",
     "Meowl",
-    "Griffin",
-    "Skibidi Toilet",
-    "Arcadragon",
     "Love Love Bear",
-    "Elefanto Frigo",
     "Antonio",
-    "Dragon Gingerini",
-    "Kalika Bros",
+    "Skibidi Toilet",
     "Dragon Aquanini",
-    "La Supreme Combinasion",
-    "Digi Narwhal",
-    "Fishino Clownino",
-    "Kraken",
-    "Tirilikalika Tirilikalako",
-    "Ginger Gerat",
-    "Hydra Bunny",
+    "Griffin",
     "Pancake and Syrup",
+    "Dragon Gingerini",
+    "Fishino Clownino",
+    "Tirilikalika Tirilikalako",
+    "La Supreme Combinasion",
+    "Kalika Bros",
+    "Ginger Gerat",
+    "Digi Narwhal",
+    "Kraken",
+    "Venuspino",
+    "Bearito Cabinito",
+    "Rico Dinero",
+    "Globa Steppa",
+    "Hydra Bunny",
+    "Dug dug dug",
     "Hydra Dragon Cannelloni",
     "Dragon Cannelloni",
-    "Venuspino",
-    "Bunny and Eggy",
-    "Rico Dinero",
-    "Dug dug dug",
     "Jelly Moby",
+    "Bunny and Eggy",
     "Ketupat Bros",
-    "Duggy Bros",
     "La Casa Boo",
-    "Los Hackers",
-    "Cerberus",
+    "Duggy Bros",
     "Rosey and Teddy",
-    "Foxini Lanternini",
-    "Globa Steppa",
-    "Spooky and Pumpky",
-    "Cooki and Milki",
-    "Quackini Snackini",
-    "Reinito Sleighito",
-    "Popcuru and Fizzuru",
-    "Capitano Moby",
-    "Burguro and Fryuro",
-    "Garama and Madundung",
-    "Fragrama and Chocrama",
-    "Ketchuru and Musturu",
-    "La Secret Combinasion",
-    "Tralaledon",
-    "Tictac Sahur",
-    "Ketupat Kepat",
-    "Tang Tang Keletang",
-    "Orcaledon",
-    "La Ginger Sekolah",
-    "Los Spaghettis",
-    "Lavadorito Spinito",
-    "Swaggy Bros",
-    "La Taco Combinasion",
-    "Los Primos",
-    "Los Chillis",
-    "Chillin Chili",
-    "Tuff Toucan",
-    "W or L",
-    "Chipso and Queso",
+    "Sammyni Cakini",
     "Guest 666",
-    "Money Money Reindeer",
+    "Gorillo Subwoofero",
+    "Los Hackers",
+    "Pineaplino",
+    "Lazy Ducky",
+    "Steakini Fattini",
+    "Foxini Lanternini",
+    "Rhino Helicopterino",
     "Fragola La La La",
-    "Los Sekolahs",
-    "Los Tacoritas",
-    "Los Amigos",
+    "Cerberus",
+    "Money Money Reindeer",
+    "Centrucci Nuclucci",
+    "Coco and Mango",
+    "Reinito Sleighito",
+    "Fragrama and Chocrama",
     "Fortunu and Cashuru",
-    "Jolly Jolly Sahur",
+    "Cooki and Milki",
+    "Rubrikiko",
+    "Los Chillis",
+    "Spooky and Pumpky",
+    "Festive 67",
     "Boppin Bunny",
     "Gym Bros",
-    "Los Cupids",
-    "Festive 67",
-    "Celularcini Viciosini",
-    "Cloverat Clapat",
+    "Tralaledon",
+    "Jolly Jolly Sahur",
+    "Clickerino Crabo",
     "La Food Combinasion",
-    "Hopilikalika Hopilikalako",
-    "Celestial Pegasus",
+    "Los Sekolahs",
+    "Los Amigos",
+    "Capitano Moby",
+    "Popcuru and Fizzuru",
+    "Cash or Card",
+    "Los Spaghettis",
+    "Anpali Babel",
     "Sammyni Fattini",
     "Money Money Bros",
-    "La Spooky Grande",
-    "Cash or Card",
-    "Swag Soda",
-    "Los Planitos",
-    "Lovin Rose",
-    "Tacorita Bicicleta",
-    "Los Jolly Combinasionas",
-    "La Romantic Grande",
-    "La Easter Grande",
+    "Caramello Filtrello",
+    "John Doe",
+    "Los Primos",
+    "Los Fruits",
+    "Celularcini Viciosini",
     "Los Hotspotsitos",
-    "Rosetti Tualetti",
-    "Los Bros",
-    "Gobblino Uniciclino",
-    "Chicleteira Cupideira",
-    "La Extinct Grande",
-    "Las Sis",
-    "Nacho Spyder",
-    "Gold Gold Gold",
+    "Los Tacoritas",
+    "Celestial Pegasus",
+    "Sand Sand Sand",
     "Los Mariachis",
-    "Snailo Clovero",
-    "La Jolly Grande",
-    "Los Candies",
-    "Churrito Bunnito",
-    "Bananito",
-    "Eviledon",
-    "Los 67",
-    "Los Sweethearts",
-    "Noo my Heart",
+    "Tob Tobi Tobi",
+    "Ganganzelli Trulala",
+    "Malame Amarele",
+    "Cloverat Clapat",
+    "Burguro And Fryuro",
+    "La Anniversary Grande",
+    "Brutto Gialutto",
+    "Hopilikalika Hopilikalako",
+    "Garama and Madundung",
+    "Caylusaurus",
+    "Swag Soda",
+    "La Secret Combinasion",
+    "Tukanno Bananno",
+    "Gobblino Uniciclino",
+    "Swaggy Bros",
+    "Nacho Spyder",
+    "Quackini Snackini",
+    "La Easter Grande",
+    "La Romantic Grande",
     "La Lucky Grande",
+    "La Jolly Grande",
+    "La Taco Combinasion",
+    "La Summer Grande",
+    "Mangolini Parrocini",
+    "Ketchuru and Musturu",
+    "Chillin Chili",
+    "Orcaledon",
+    "W or L",
+    "Tuff Toucan",
+    "Rosetti Tualetti",
+    "La Ginger Sekolah",
+    "Tictac Sahur",
     "Ventoliero Pavonero",
-    "Baskito",
-    "Chimnino",
     "Los Puggies",
-    "Camera Ramena",
-    "Los 25",
-    "Spinny Hammy",
-    "Money Money Puggy",
-    "Cigno Fulgoro",
-    "Los Spooky Combinasionas",
-    "Chicleteira Noelteira",
-    "Mariachi Corazoni",
-    "Tacorillo Crocodillo",
-    "Noo my Gold",
-    "Los Mobilis",
-    "Mieteteira Bicicleteira",
-    "DJ Panda",
-    "Los Combinasionas",
-    "Nuclearo Dinossauro",
-    "Bacuru and Egguru",
+    "Lavadorito Spinito",
     "Spaghetti Tualetti",
-    "La Grande Combinasion",
-    "Esok Sekolah"
+    "Gold Gold Gold",
+    "Ketupat Kepat",
+    "Tang Tang Keletang",
+    "Abyssaloco",
+    "Lovin Rose",
+    "Eviledon",
+    "Girafini Raftini",
+    "Esok Sekolah",
+    "Los Cupids",
+    "Mieteteira Bicicleteira",
+    "Chipso and Queso",
+    "La Spooky Grande",
+    "Los Bros",
+    "La Extinct Grande",
+    "Quesadillo Vampiro",
+    "Los 67",
+    "Los Mobilis",
+    "Churrito Bunnito",
+    "Tacorita Bicicleta",
+    "Money Money Puggy",
+    "Los Jolly Combinasionas",
+    "Los Spooky Combinasionas",
+    "Los Planitos",
+    "Las Sis",
+    "Los Sweethearts",
+    "Nuclearo Dinossauro",
+    "Tacorillo Crocodillo",
+    "Pirulitoita Bicicleteira",
+    "Telemorte",
+    "Nooo My Hotspot",
+    "Vulturino Skeletono",
+    "Agarrini la Palini",
+    "Donkeyturbo Express",
+    "Los Candies",
+    "Ginger Cisterna",
+    "Piccionetta Macchina",
+    "Buho de Noelo",
+    "Money Money Man",
+    "La Sahur Combinasion",
 }
 
 actionConfig = {
@@ -916,17 +937,14 @@ Config = {
 -- Brainrot ESP
 brainrotESPEnabled=Config.BrainrotESP; local brainrotBillboards={}
 function createBrainrotBillboard(data)
-    local bb=Instance.new("BillboardGui"); bb.Name="BrainrotESP_"..data.uid; bb.Size=UDim2.new(0,160,0,38)
+    local bb=Instance.new("BillboardGui"); bb.Name="BrainrotESP_"..data.uid; bb.Size=UDim2.new(0,160,0,26)
     bb.StudsOffset=Vector3.new(0,1.8,0); bb.AlwaysOnTop=true; bb.LightInfluence=0; bb.MaxDistance=3000
     local container=Instance.new("Frame",bb); container.Size=UDim2.new(1,0,1,0); container.BackgroundColor3=Color3.new(0,0,0)
     container.BackgroundTransparency=0.6; container.BorderSizePixel=0; Instance.new("UICorner",container).CornerRadius=UDim.new(0,4)
     local stroke=Instance.new("UIStroke",container); stroke.Color=Color3.new(1,1,1); stroke.Thickness=1.2; stroke.Transparency=0.2
-    local nameLabel=Instance.new("TextLabel",container); nameLabel.Size=UDim2.new(1,-6,0,20); nameLabel.Position=UDim2.new(0,3,0,0)
-    nameLabel.BackgroundTransparency=1; nameLabel.Font=Enum.Font.GothamBold; nameLabel.TextSize=13; nameLabel.TextColor3=Color3.fromRGB(255,215,60)
+    local nameLabel=Instance.new("TextLabel",container); nameLabel.Size=UDim2.new(1,-6,1,0); nameLabel.Position=UDim2.new(0,3,0,0)
+    nameLabel.BackgroundTransparency=1; nameLabel.Font=Enum.Font.GothamBold; nameLabel.TextSize=13;     nameLabel.TextColor3=Color3.fromRGB(255,255,255)
     nameLabel.TextStrokeTransparency=0; nameLabel.TextStrokeColor3=Color3.new(0,0,0); nameLabel.Text=data.name or "???"; nameLabel.TextXAlignment=Enum.TextXAlignment.Center
-    local genLabel=Instance.new("TextLabel",container); genLabel.Size=UDim2.new(1,-6,0,18); genLabel.Position=UDim2.new(0,3,0,20)
-    genLabel.BackgroundTransparency=1; genLabel.Font=Enum.Font.GothamBold; genLabel.TextSize=13; genLabel.TextColor3=Color3.fromRGB(0,255,0)
-    genLabel.TextStrokeTransparency=0; genLabel.TextStrokeColor3=Color3.new(0,0,0); genLabel.Text=data.genText or ""; genLabel.TextXAlignment=Enum.TextXAlignment.Center
     return bb
 end
 function refreshBrainrotESP()
@@ -1249,6 +1267,7 @@ function initToggles()
     setToggle("Dark Mode", Config.DarkMode, true)
     setToggle("DarkMode", Config.DarkMode, true)
     setToggle("Grabble TP", Config.TpSettings.GrabbleTP or false, true)
+    setToggle("KashiOptimizer", Config.KashiOptimizer, true)
 end
 
 loadConfig()
@@ -1269,20 +1288,50 @@ initToggles()
 
 -- EARLY BOOT: FPS Boost + Unwalk imediatos (sem esperar 12k+ linhas de UI)
 if Config.FPSBoost then
-    task.spawn(function()
-        Lighting.GlobalShadows = false
-        Lighting.Brightness = 2
-        Lighting.FogEnd = 9e9
-        Lighting.FogStart = 0
-        Lighting.EnvironmentDiffuseScale = 0
-        Lighting.EnvironmentSpecularScale = 0
-        pcall(function() Lighting.ShadowSoftness = 0 end)
-        for _, v in ipairs(Lighting:GetChildren()) do
-            if v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("SunRaysEffect") or v:IsA("DepthOfFieldEffect") then
-                pcall(function() v.Enabled = false end)
+    Config.FPSBoost=true
+    Lighting.GlobalShadows=false; Lighting.Brightness=2; Lighting.FogEnd=9e9; Lighting.FogStart=0
+    Lighting.EnvironmentDiffuseScale=0; Lighting.EnvironmentSpecularScale=0
+    pcall(function() Lighting.ShadowSoftness=0 end)
+    for _,v in pairs(Lighting:GetChildren()) do
+        if v.Name ~= "MynxxDarkTheme" and (v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("SunRaysEffect") or v:IsA("DepthOfFieldEffect")) then pcall(function() v.Enabled=false end) elseif v:IsA("Atmosphere") then pcall(function() v:Destroy() end) end
+    end
+    local _fpsDescs = Workspace:GetDescendants()
+    for i = 1, #_fpsDescs do
+        local obj = _fpsDescs[i]
+        if _G.__laser and _G.__laser.IsLaserObject and _G.__laser.IsLaserObject(obj) then
+            pcall(_G.__laser.UpdateLaserObject, obj)
+        elseif not (type(IsProtected)=="function" and IsProtected(obj)) then
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                if not (obj:IsA("Beam") and (obj.Name == "PlotBeam" or obj.Name == "PlotBeamGlow" or obj.Name == "BestPetBeam")) then pcall(function() obj.Enabled=false end) end
             end
+            if obj:IsA("BasePart") then pcall(function() obj.Material=Enum.Material.Plastic; obj.CastShadow=false end) end
+            if obj:IsA("SurfaceAppearance") or obj:IsA("Texture") or obj:IsA("Decal") then pcall(function() obj:Destroy() end) end
+            if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then pcall(function() obj.Enabled=false; obj.Shadows=false end) end
         end
+    end
+    if not fpsBoostConnection then
+        fpsBoostConnection = Workspace.DescendantAdded:Connect(function(obj)
+            if not Config.FPSBoost then return end
+            if _G.__laser and _G.__laser.IsLaserObject and _G.__laser.IsLaserObject(obj) then pcall(_G.__laser.UpdateLaserObject, obj)
+            elseif not (type(IsProtected)=="function" and IsProtected(obj)) then
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Smoke") then
+                    if not (obj:IsA("Beam") and (obj.Name == "PlotBeam" or obj.Name == "PlotBeamGlow" or obj.Name == "BestPetBeam")) then pcall(function() obj.Enabled=false end) end
+                end
+                if obj:IsA("BasePart") then pcall(function() obj.Material=Enum.Material.Plastic; obj.CastShadow=false end) end
+                if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then pcall(function() obj.Enabled=false; obj.Shadows=false end) end
+            end
+        end)
+    end
+end
+if Config.FPSBoostUltra then
+    Config.FPSBoostUltra=true
+    pcall(function()
+        settings().Rendering.QualityLevel=Enum.QualityLevel.Level01
+        settings().Rendering.MeshPartDetailLevel=Enum.MeshPartDetailLevel.Level01
+        settings().Physics.AllowSleep=true
     end)
+    pcall(function() settings().Physics.PhysicsEnvironmentalThrottle=Enum.EnviromentalPhysicsThrottle.Skip end)
+    if sethiddenproperty then pcall(function() sethiddenproperty(Lighting,"Technology",Enum.Technology.Compatibility) end) end
 end
 if Config.Unwalk then
     task.spawn(function()
@@ -6664,60 +6713,35 @@ function tpToBrainrot()
             hum:EquipTool(carpet)
         end
         local targetPos = targetPart.Position
-        local verticalDiff = targetPos.Y - hrp.Position.Y
-        if verticalDiff > 2 or targetPos.Y > 25 then
-            local plat = Instance.new("Part")
-            plat.Name = "XiTempPlatform"
-            plat.Size = Vector3.new(6, 1.5, 6)
-            plat.Position = Vector3.new(targetPos.X, targetPos.Y - 11, targetPos.Z)
-            plat.Color = Color3.fromRGB(232, 111, 177)
-            plat.Material = Enum.Material.Neon
-            plat.Anchored = true
-            plat.CanCollide = false; pcall(makeOneWay, plat)
-            plat.Transparency = 0.3
-            plat.Parent = Workspace
-            
-            -- Instant teleport instead of lerp
-            local targetCF = CFrame.new(targetPos.X, targetPos.Y - 8, targetPos.Z)
-            hrp.AssemblyLinearVelocity = Vector3.zero
-            hrp.AssemblyAngularVelocity = Vector3.zero
-            hrp.CFrame = targetCF
-            task.wait(0.05)
-            hrp.AssemblyLinearVelocity = Vector3.zero
-            
-            task.spawn(function()
-                local start = tick()
-                while (tick() - start) < 20 do
-                    if LocalPlayer:GetAttribute("Stealing") then
-                        break
-                    end
-                    task.wait(0.1)
-                end
-                plat:Destroy()
-            end)
-        else
-            -- Instant teleport to brainrot
-            local targetCF = CFrame.new(targetPos)
-            hrp.AssemblyLinearVelocity = Vector3.zero
-            hrp.AssemblyAngularVelocity = Vector3.zero
-            hrp.CFrame = targetCF
-            task.wait(0.05)
-            hrp.AssemblyLinearVelocity = Vector3.zero
-            hrp.AssemblyAngularVelocity = Vector3.zero
-            local holdEnd = tick() + math.max(0.18, Config.TpSettings.DelayVal or 0.4)
-            while tick() < holdEnd do
-                if not hrp.Parent then
-                    break
-                end
+        local platY = getGoToBrainrotTargetY(targetPos.Y) - 1.5
+        local plat = Instance.new("Part")
+        plat.Name = "XiTempPlatform"
+        plat.Size = Vector3.new(6, 1.5, 6)
+        plat.Position = Vector3.new(targetPos.X, platY, targetPos.Z)
+        plat.Color = Color3.fromRGB(232, 111, 177)
+        plat.Material = Enum.Material.Neon
+        plat.Anchored = true
+        plat.CanCollide = false; pcall(makeOneWay, plat)
+        plat.Transparency = 0.3
+        plat.Parent = Workspace
+
+        local targetCF = CFrame.new(targetPos.X, platY + 7, targetPos.Z)
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
+        hrp.CFrame = targetCF
+        task.wait(0.05)
+        hrp.AssemblyLinearVelocity = Vector3.zero
+
+        task.spawn(function()
+            local start = tick()
+            while (tick() - start) < 20 do
                 if LocalPlayer:GetAttribute("Stealing") then
                     break
                 end
-                hrp.AssemblyLinearVelocity = Vector3.zero
-                hrp.AssemblyAngularVelocity = Vector3.zero
-                pcall(function() hrp.CFrame = CFrame.new(targetPos) end)
-                RunService.Heartbeat:Wait()
+                task.wait(0.1)
             end
-        end
+            plat:Destroy()
+        end)
     end)
     if not ok then
         warn("tpToBrainrot error:", err)
@@ -8208,7 +8232,9 @@ function setFPSBoost(enabled) Config.FPSBoost=enabled; saveConfig()
         for _,v in pairs(Lighting:GetChildren()) do
             if v.Name ~= "MynxxDarkTheme" and (v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("SunRaysEffect") or v:IsA("DepthOfFieldEffect")) then pcall(function() v.Enabled=false end) elseif v:IsA("Atmosphere") then pcall(function() v:Destroy() end) end
         end
-        for _,obj in ipairs(Workspace:GetDescendants()) do
+        local _fpsDescs = Workspace:GetDescendants()
+        for i = 1, #_fpsDescs do
+            local obj = _fpsDescs[i]
             if _G.__laser.IsLaserObject(obj) then
                 _G.__laser.UpdateLaserObject(obj)
             elseif not IsProtected(obj) then
@@ -8221,6 +8247,7 @@ function setFPSBoost(enabled) Config.FPSBoost=enabled; saveConfig()
                 if obj:IsA("SurfaceAppearance") or obj:IsA("Texture") or obj:IsA("Decal") then pcall(function() obj:Destroy() end) end
                 if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then pcall(function() obj.Enabled=false; obj.Shadows=false end) end
             end
+            if i % 100 == 0 then task.wait() end
         end
         fpsBoostConnection = Workspace.DescendantAdded:Connect(function(obj)
             if not Config.FPSBoost then return end
@@ -9090,7 +9117,7 @@ end -- END X-RAY SCOPE
 
 
 -- ============================================================
--- ANTI BEE & DISCO (FIX: FOV bloqueado em 100 + movimento mobile)
+-- ANTI BEE & DISCO (FIX: FOV desbloqueado + movimento mobile)
 -- ============================================================
 SharedState.ANTI_BEE_DISCO = {
     running = false,
@@ -9178,22 +9205,21 @@ SharedState.ANTI_BEE_DISCO.restoreControls = function()
     end)
 end
 
--- TRAVA FOV em 100 (sempre ativa enquanto o AntiBee estiver rodando)
+-- TRAVA FOV (REMOVER SE NÃO QUISER BLOQUEAR O SLIDER)
+-- Se quiser manter a trava, descomente. Se não, mantenha comentado.
 SharedState.ANTI_BEE_DISCO.lockCamera = function()
     local ab = SharedState.ANTI_BEE_DISCO
     if ab.cameraLockConn then return end
     local cam = workspace.CurrentCamera
     if not cam then return end
-    -- Guarda o FOV original apenas para restauração, mas forçamos 100
     ab.originalFOV = cam.FieldOfView
     ab.cameraLockConn = RunService.RenderStepped:Connect(function()
         if not ab.running or not Config.AntiBeeDisco then
             return
         end
         pcall(function()
-            -- Força o FOV para 100
-            if cam.FieldOfView ~= 100 then
-                cam.FieldOfView = 100
+            if cam.FieldOfView ~= (ab.originalFOV or 70) then
+                cam.FieldOfView = ab.originalFOV or 70
             end
         end)
     end)
@@ -9208,7 +9234,6 @@ SharedState.ANTI_BEE_DISCO.restoreCamera = function()
     end
     local cam = workspace.CurrentCamera
     if cam and ab.originalFOV then
-        -- Restaura o FOV original (caso desative)
         cam.FieldOfView = ab.originalFOV
     end
 end
@@ -9238,8 +9263,8 @@ SharedState.ANTI_BEE_DISCO.Enable = function()
     end))
     -- Protege controles
     ab.protectControls()
-    -- Trava FOV em 100 (AGORA ATIVO)
-    ab.lockCamera()
+    -- Trava FOV (COMENTADO PARA NÃO BLOQUEAR O SLIDER)
+    -- ab.lockCamera()
     -- Bloqueia som do bee
     table.insert(ab.connections, RunService.Heartbeat:Connect(function()
         if not ab.running or not Config.AntiBeeDisco then return end
@@ -10917,7 +10942,7 @@ function rebuildActions()
     clearBody(panels["ActionsBody"])
     if actionConfig["Ragdoll Self (R)"] then makeQuickButton(panels["ActionsBody"],"Ragdoll Self (R)",function() pcall(runAdminCommand,player,"ragdoll") end) end
     makeQuickButton(panels["ActionsBody"], "Teleport", function()
-    task.spawn(runAutoSnipe)
+    task.spawn(function() pcall(doGrabbleVelocityTP) end)
 end)
     if actionConfig["Rejoin PS"] then makeQuickButton(panels["ActionsBody"],"Rejoin PS",function() TeleportService:Teleport(game.PlaceId,player) end) end
     makeQuickButton(panels["ActionsBody"], "Drop Brainrot", function() runDropBrainrot() end)
@@ -13225,10 +13250,6 @@ function InicializarRecursos()
     end)
 
     task.spawn(function()
-        if Config.FPSBoost then setFPSBoost(true) end
-    end)
-
-    task.spawn(function()
         if Config.XRay then setXRay(true) end
     end)
 
@@ -13683,7 +13704,8 @@ do
         local floor = getPetFloor(petY)
         if floor == 3 then return 21 end
         if floor == 2 then return 14.5 end
-        return -4
+        if petY < 3 then return 0 end
+        return 5.1
     end
     local BASES_LOW = {
         [1]=Vector3.new(-476.52,-2,220.94),[2]=Vector3.new(-476.52,-2,113.77),
@@ -14649,11 +14671,10 @@ do
             hrp.AssemblyAngularVelocity = Vector3.zero
         end
         do
-            local _platPos = (hrp and hrp.Parent and hrp.Position) or _to
-            local _feetY = _platPos.Y - 3
+            local _platY = getGoToBrainrotTargetY(petPos.Y) - 1.5
             local _plat = Instance.new("Part")
             _plat.Name = "MynxxTempPlatform"; _plat.Size = Vector3.new(8, 1, 8)
-            _plat.Position = Vector3.new(petPos.X, _feetY - 1.5, petPos.Z)
+            _plat.Position = Vector3.new(petPos.X, _platY, petPos.Z)
             _plat.Anchored = true; _plat.CanCollide = false; pcall(makeOneWay, _plat); _plat.Transparency = 1
             _plat.Material = Enum.Material.SmoothPlastic; _plat.Parent = workspace
             task.spawn(function()
@@ -15223,6 +15244,7 @@ do
             end
             if _caConn then _caConn:Disconnect() end
             if _cloneSucceeded and not _diedDuringTP then
+                task.wait(0.5)
                 goToBrainrot(petPos)
             end
         else
@@ -15469,3 +15491,4 @@ end)
         _G.MynxxScannerReady = true -- TpOnLoad fast path waits on this
     end)
 end
+
