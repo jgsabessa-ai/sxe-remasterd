@@ -248,6 +248,26 @@ task.delay(4.0, function()
     end
 end)
 
+-- ============================================
+-- FUNÇÃO DE SOM PRIORITÁRIO (INDEPENDENTE)
+-- ============================================
+function PlayPrioritySound()
+    if not Config then return end
+    if Config.PrioritySoundAlert and Config.PrioritySoundID and Config.PrioritySoundID ~= "" then
+        pcall(function()
+            local sid = Config.PrioritySoundID:match("%d+")
+            if sid then
+                local snd = Instance.new("Sound")
+                snd.SoundId = "rbxassetid://" .. sid
+                snd.Volume = 1.5
+                snd.Parent = game:GetService("SoundService")
+                snd:Play()
+                game:GetService("Debris"):AddItem(snd, 5)
+            end
+        end)
+    end
+end
+
 player = Players.LocalPlayer
 playerGui = player:WaitForChild("PlayerGui")
 pcall(function() Players.RespawnTime = 0 end)
@@ -937,14 +957,19 @@ Config = {
 -- Brainrot ESP
 brainrotESPEnabled=Config.BrainrotESP; local brainrotBillboards={}
 function createBrainrotBillboard(data)
-    local bb=Instance.new("BillboardGui"); bb.Name="BrainrotESP_"..data.uid; bb.Size=UDim2.new(0,160,0,26)
+    local bb=Instance.new("BillboardGui"); bb.Name="BrainrotESP_"..data.uid; bb.Size=UDim2.new(0,160,0,44)
     bb.StudsOffset=Vector3.new(0,1.8,0); bb.AlwaysOnTop=true; bb.LightInfluence=0; bb.MaxDistance=3000
     local container=Instance.new("Frame",bb); container.Size=UDim2.new(1,0,1,0); container.BackgroundColor3=Color3.new(0,0,0)
     container.BackgroundTransparency=0.6; container.BorderSizePixel=0; Instance.new("UICorner",container).CornerRadius=UDim.new(0,4)
     local stroke=Instance.new("UIStroke",container); stroke.Color=Color3.new(1,1,1); stroke.Thickness=1.2; stroke.Transparency=0.2
-    local nameLabel=Instance.new("TextLabel",container); nameLabel.Size=UDim2.new(1,-6,1,0); nameLabel.Position=UDim2.new(0,3,0,0)
+    local nameLabel=Instance.new("TextLabel",container); nameLabel.Size=UDim2.new(1,-6,0.55,0); nameLabel.Position=UDim2.new(0,3,0,1)
     nameLabel.BackgroundTransparency=1; nameLabel.Font=Enum.Font.GothamBold; nameLabel.TextSize=13;     nameLabel.TextColor3=Color3.fromRGB(255,255,255)
     nameLabel.TextStrokeTransparency=0; nameLabel.TextStrokeColor3=Color3.new(0,0,0); nameLabel.Text=data.name or "???"; nameLabel.TextXAlignment=Enum.TextXAlignment.Center
+    local genLabel=Instance.new("TextLabel",container); genLabel.Size=UDim2.new(1,-6,0.45,0); genLabel.Position=UDim2.new(0,3,0.55,0)
+    genLabel.BackgroundTransparency=1; genLabel.Font=Enum.Font.GothamBold; genLabel.TextSize=11;     genLabel.TextColor3=Color3.fromRGB(255,220,50)
+    genLabel.TextStrokeTransparency=0; genLabel.TextStrokeColor3=Color3.new(0,0,0)
+    local gt=data.genText or ""; local mut=data.mutation and data.mutation~="None" and (" ["..data.mutation.."]") or ""
+    genLabel.Text=gt..mut; genLabel.TextXAlignment=Enum.TextXAlignment.Center
     return bb
 end
 function refreshBrainrotESP()
@@ -1352,52 +1377,56 @@ if Config.Unwalk then
 end
 
 do
-local _xchan
-local _gu=debug.getupvalues or getupvalues
-local function _isCh(v)
-if type(v)~="table" then return false end
-local o,y=pcall(function()return type(v.GetTable)=="function" and type(v.GetIndex)=="function" end)
-return o and y
+local _plotCache={}
+local _sync
+local _realCh
+local function _getSync()
+if _sync then return _sync end
+local ok,s=pcall(function()return require(game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Synchronizer"))end)
+if ok then _sync=s end
+return _sync
 end
-local function _chans()
-if _xchan then return _xchan end
-local ok,sync=pcall(function()return require(game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Synchronizer"))end)
-if not(ok and type(sync)=="table")or not _gu then return nil end
-if type(sync.GetTableFromChannel)=="function" then
-local ok2,ups=pcall(_gu,sync.GetTableFromChannel)
-if ok2 and type(ups)=="table" then
-for _,u in pairs(ups)do if type(u)=="table" then _xchan=u break end end
-end
-end
-if not _xchan then
-for _,fn in pairs(sync)do
-if type(fn)=="function" then
-local o2,u2=pcall(_gu,fn)
-if o2 and type(u2)=="table" then
-for _,u in pairs(u2)do
-if type(u)=="table" then
-local n,g=0,0
-for k,v in pairs(u)do n=n+1 if type(k)=="string" and _isCh(v)then g=g+1 end if n>=4 then break end end
-if n>0 and g==n then _xchan=u break end
+local function _installHook()
+local sync=_getSync()
+if not sync or type(sync.GetAllChannels)~="function" then return end
+local orig=sync.GetAllChannels
+sync.GetAllChannels=function(...)
+local r=orig(...)
+if not _realCh and type(r)=="table" then _realCh=r end
+return r
 end
 end
-end
-end
-if _xchan then break end
-end
-end
-return _xchan
-end
-_G.XenSyncAll=function()return _chans()end
+_installHook()
+_G.XenSyncAll=function()return _realCh or _plotCache end
 _G.XenSyncGet=function(idx)
-local t=_chans()
-if not t or idx==nil then return nil end
-return rawget(t,idx)
+if idx==nil then return nil end
+if _realCh then
+local ch=rawget(_realCh,idx)
+if ch and type(ch)=="table" and type(ch.Get)=="function" then return ch end
+for k,v in pairs(_realCh)do if tostring(k)==idx and type(v)=="table" and type(v.Get)=="function" then return v end end
+end
+if _plotCache[idx]then return _plotCache[idx]end
+local sync=_getSync()
+if not sync or type(sync.GetTableFromChannel)~="function" then return nil end
+local ok,ct=pcall(sync.GetTableFromChannel,sync,idx)
+if ok and type(ct)=="table" then
+local proxy=setmetatable({},{
+__index=function(_,k)
+if k=="Get"then return function(_,f)return ct[f]end end
+if k=="GetTable"then return function()return ct end end
+return ct[k]
+end
+})
+_plotCache[idx]=proxy
+return proxy
+end
+return nil
 end
 _G._xenRawCT=function(plotName)
 local c=_G.XenSyncGet(plotName)
 if not c then return nil end
-return rawget(c,"CacheTable")
+if type(c.GetTable)=="function" then local ok,t=pcall(c.GetTable,c);if ok then return t end end
+return nil
 end
 local _AD,_MD,_TD
 local function _data()
@@ -1419,10 +1448,17 @@ if mutation and mutation~="None" and mutation~="" then
 local m=_MD[mutation]
 if m and m.Modifier then mult=mult+m.Modifier end
 end
-if type(traits)=="table" then
+if traits then
+if type(traits)=="string"and traits~="None"then
+for tr in traits:gmatch("[^, ]+")do
+local t=_TD[tr]
+if t and t.MultiplierModifier then mult=mult+t.MultiplierModifier end
+end
+elseif type(traits)=="table"then
 for _,tr in ipairs(traits)do
 local t=_TD[tr]
 if t and t.MultiplierModifier then mult=mult+t.MultiplierModifier end
+end
 end
 end
 return info.Generation*mult
@@ -4648,8 +4684,12 @@ end
 -- PRIORITY ALERT (Mynxx Styled 3D Viewer with Sorting Queue)
 -- ============================================================
 function ShowPriorityAlertImpl(brainrotName, genText, mutation, ownerUsername, headerText)
-    -- Toggle "Brainrot Notification" (ESP tab). nil = old config = enabled.
+    -- 🔥 SOM TOCA IMEDIATAMENTE, INDEPENDENTE DE QUALQUER COISA
+    PlayPrioritySound()
+    
+    -- Agora sim, verifica se a notificação visual está desativada
     if Config and Config.BrainrotAlert == false then return end
+    
     local normalizedMutation = mutation and mutation:gsub("%s+", ""):lower() or ""
     
     local mutationColors = {
@@ -4664,7 +4704,9 @@ function ShowPriorityAlertImpl(brainrotName, genText, mutation, ownerUsername, h
         ["radioactive"] = Color3.fromRGB(104, 245, 0),
         ["cursed"] = Color3.fromRGB(245, 56, 56),
         ["divine"] = Color3.fromRGB(255, 209, 59),
-        ["cyber"] = Color3.fromRGB(121, 219, 255)
+        ["cyber"] = Color3.fromRGB(121, 219, 255),
+        ["normal"] = Color3.fromRGB(160, 160, 160),
+        ["none"] = Color3.fromRGB(160, 160, 160)
     }
     
     local ExploitGui = (gethui and gethui()) or game:GetService("CoreGui")
@@ -5018,7 +5060,11 @@ task.spawn(function()
     local AnimalsShared=_G._xenAnimShim
     local okN,NumberUtils=pcall(function() return require(Utils:WaitForChild("NumberUtils")) end); if not okN then return end
     local allAnimalsCache={}; local lastAnimalData={}
-    local function getAnimalHash(al) if not al then return "" end; local h=""; for slot,d in pairs(al) do if type(d)=="table" then h=h..tostring(slot)..tostring(d.Index)..tostring(d.Mutation) end end; return h end
+    local function normMut(m)if m=="None"or m==""or m==nil then return"NORMAL"end return m end
+    local function getAnimalHash(al) if not al then return "" end; local h=""
+        if #al>0 then for i=1,#al do local d=al[i]; if type(d)=="table" then h=h..tostring(i)..tostring(d.Index)..tostring(d.UUID or "")..tostring(d.Mutation or "")..tostring(d.Traits and table.concat(d.Traits,",")or"")end end
+        else for slot,d in pairs(al)do if type(d)=="table"then h=h..tostring(slot)..tostring(d.Index)..tostring(d.Mutation or "")..tostring(d.Traits and table.concat(d.Traits,",")or"")end end end
+    return h end
     local function scanSinglePlot(plot) pcall(function()
         local ch=_G.XenSyncGet(plot.Name); if not ch then return end
         local al=ch:Get("AnimalList"); local owner=ch:Get("Owner")
@@ -5029,17 +5075,32 @@ task.spawn(function()
         if lastAnimalData[plot.Name]==hash then return end
         
         for i=#allAnimalsCache,1,-1 do if allAnimalsCache[i].plot==plot.Name then table.remove(allAnimalsCache,i) end end
-        for slot,ad in pairs(al) do if type(ad)=="table" then
-            local aName,aInfo=ad.Index,AnimalsData[ad.Index]; if aInfo then
+        if #al>0 then
+            for slot=1,#al do local ad=al[slot]; if type(ad)=="table" and ad.Index~="Empty" and ad.Index~=nil then
+                local aName,aInfo=ad.Index,AnimalsData[ad.Index]
+                local displayName=aInfo and aInfo.DisplayName or aName
                 local mut=ad.Mutation or "None"; if mut=="Yin Yang" then mut="YinYang" end
-                local traits=(ad.Traits and #ad.Traits>0) and table.concat(ad.Traits,", ") or "None"
-                local gv=AnimalsShared:GetGeneration(aName,ad.Mutation,ad.Traits,nil)
+                local traits=ad.Traits
+                local gv=aInfo and AnimalsShared:GetGeneration(aName,mut~="None" and mut or nil,traits) or 0
+                if gv==0 then gv=aInfo and AnimalsShared:GetGeneration(aName,"None",nil) or 0 end
                 local gt="$"..NumberUtils:ToString(gv).."/s"
-                local pv=0; pcall(function() pv=AnimalsShared:GetValue(aName,ad.Mutation,ad.Traits,nil) or 0 end)
-                if type(pv)~="number" then pv=0 end
-                table.insert(allAnimalsCache,{name=aInfo.DisplayName or aName,index=aName,genText=gt,genValue=gv,petValue=pv,mutation=mut,traits=traits,owner=ownerName,plot=plot.Name,slot=tostring(slot),uid=plot.Name.."_"..tostring(slot)})
-            end
-        end end
+                local pv=0
+                table.insert(allAnimalsCache,{name=displayName,index=aName,genText=gt,genValue=gv,petValue=pv,mutation=normMut(mut),traits=traits and #traits>0 and table.concat(traits,", ")or"None",owner=ownerName,plot=plot.Name,slot=tostring(slot),uid=plot.Name.."_"..tostring(slot)})
+            end end
+        else
+            for slot,ad in pairs(al) do if type(ad)=="table" then
+                local aName,aInfo=ad.Index,AnimalsData[ad.Index]; if aInfo then
+                    local displayName=aInfo.DisplayName or aName
+                    local mut=ad.Mutation or "None"; if mut=="Yin Yang" then mut="YinYang" end
+                    local traits=ad.Traits
+                    local gv=AnimalsShared:GetGeneration(aName,mut~="None" and mut or nil,traits)
+                    if not gv or gv==0 then gv=AnimalsShared:GetGeneration(aName,"None",nil) or 0 end
+                    local gt="$"..NumberUtils:ToString(gv).."/s"
+                    local pv=0
+                    table.insert(allAnimalsCache,{name=displayName,index=aName,genText=gt,genValue=gv,petValue=pv,mutation=normMut(mut),traits=traits and #traits>0 and table.concat(traits,", ")or"None",owner=ownerName,plot=plot.Name,slot=tostring(slot),uid=plot.Name.."_"..tostring(slot)})
+                end
+            end end
+        end
         lastAnimalData[plot.Name]=hash
         table.sort(allAnimalsCache,function(a,b) return a.genValue>b.genValue end)
         SharedState.AllAnimalsCache=allAnimalsCache; SharedState.ListNeedsRedraw=true
@@ -11630,7 +11691,7 @@ function refreshTargetPanel()
                 Rainbow="rgb(255,0,251)", Candy="rgb(192,192,192)", Lava="rgb(255,149,0)",
                 Galaxy="rgb(170,60,255)", YinYang="rgb(220,220,220)", Radioactive="rgb(104,245,0)",
                 Cursed="rgb(245,56,56)", Divine="rgb(255,209,59)", Cyber="rgb(121,219,255)",
-                Phantom="rgb(180,180,180)",
+                Phantom="rgb(180,180,180)", NORMAL="rgb(160,160,160)",
             }
             local _mc = _mutColors[_mut] or "rgb(200,100,255)"
             _mutTag = "<font color='" .. _mc .. "'>[" .. _mut .. "]</font> "
@@ -12938,10 +12999,11 @@ local logoCorner = Instance.new("UICorner")
 logoCorner.CornerRadius = UDim.new(1, 0)
 logoCorner.Parent = logoImg
 
-lg=Instance.new("TextLabel"); lg.Name="BrandTitle"; lg.LayoutOrder=1; lg.AutomaticSize=Enum.AutomaticSize.X; lg.Size=UDim2.new(0,0,1,0); lg.BackgroundTransparency=1; lg.Text="Sxe Remasterd"; lg.TextColor3=Theme.Text; lg.Font=Enum.Font.GothamBlack; lg.TextSize=19; lg.TextXAlignment=Enum.TextXAlignment.Left; lg.Parent=topInfo
+lg=Instance.new("TextLabel"); lg.Name="BrandTitle"; lg.LayoutOrder=1; lg.AutomaticSize=Enum.AutomaticSize.X; lg.Size=UDim2.new(0,0,1,0); lg.BackgroundTransparency=1; lg.Text="Sxe Remasterd"; lg.TextColor3=Color3.new(1,1,1); lg.Font=Enum.Font.GothamBlack; lg.TextSize=19; lg.TextXAlignment=Enum.TextXAlignment.Left; lg.Parent=topInfo
+local grad=Instance.new("UIGradient",lg); grad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(139,90,20)),ColorSequenceKeypoint.new(0.3,Color3.fromRGB(255,200,50)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(255,255,200)),ColorSequenceKeypoint.new(0.7,Color3.fromRGB(255,200,50)),ColorSequenceKeypoint.new(1,Color3.fromRGB(139,90,20))}); grad.Offset=Vector2.new(0,0)
+task.spawn(function()while lg and lg.Parent do for o=-0.8,0.8,0.015 do if not lg or not lg.Parent then break end grad.Offset=Vector2.new(o,0);task.wait(0.02)end;grad.Offset=Vector2.new(-0.8,0)end end)
 dd=Instance.new("TextLabel"); dd.Name="BrandSep"; dd.LayoutOrder=2; dd.AutomaticSize=Enum.AutomaticSize.X; dd.Size=UDim2.new(0,0,1,0); dd.BackgroundTransparency=1; dd.Text="|"; dd.TextColor3=Theme.Dim; dd.Font=Enum.Font.GothamBlack; dd.TextSize=18; dd.Parent=topInfo
-dc=Instance.new("TextLabel"); dc.Name="BrandDiscord"; dc.LayoutOrder=3; dc.AutomaticSize=Enum.AutomaticSize.X; dc.Size=UDim2.new(0,0,1,0); dc.BackgroundTransparency=1; dc.Text="@byjotinhabbrr @bybrunocl06383 @bydrike2"; dc.TextColor3=Theme.Dim; dc.Font=Enum.Font.GothamBold; dc.TextSize=13; dc.TextXAlignment=Enum.TextXAlignment.Left; dc.Parent=topInfo
-task.spawn(function() while dc do local t=0; while dc do t=(t+0.005)%1; dc.TextColor3=Color3.fromHSV(t,1,1); task.wait() end end end)
+dc=Instance.new("TextLabel"); dc.Name="BrandDiscord"; dc.LayoutOrder=3; dc.AutomaticSize=Enum.AutomaticSize.X; dc.Size=UDim2.new(0,0,1,0); dc.BackgroundTransparency=1; dc.Text=""; dc.TextColor3=Theme.Dim; dc.Font=Enum.Font.GothamBold; dc.TextSize=13; dc.TextXAlignment=Enum.TextXAlignment.Left; dc.Parent=topInfo
 rightDiv=Instance.new("Frame"); rightDiv.Name="BottomBarDiv"; rightDiv.LayoutOrder=2; rightDiv.Size=UDim2.new(0,1,0,28); rightDiv.BackgroundColor3=Theme.Stroke; rightDiv.BackgroundTransparency=0.35; rightDiv.BorderSizePixel=0; rightDiv.Parent=bottomBar
 fpsText=Instance.new("TextLabel"); fpsText.Name="FpsText"; fpsText.LayoutOrder=3; fpsText.AutomaticSize=Enum.AutomaticSize.X; fpsText.Size=UDim2.new(0,0,1,0); fpsText.BackgroundTransparency=1; fpsText.Text="FPS: --\nPING: --ms"; fpsText.TextColor3=Theme.Dim; fpsText.Font=Enum.Font.GothamBold; fpsText.TextSize=10; fpsText.TextXAlignment=Enum.TextXAlignment.Left; fpsText.Parent=bottomBar
 if _G.addLazyUI then _G.addLazyUI(bottomBar, true) end
@@ -15213,7 +15275,7 @@ do
         local _caConn = LP.CharacterAdded:Connect(function() _charAdded = true end)
 
         task.wait(_cloneDelay)
-        local _cloneOk = doClone()
+        local _cloneOk = pcall(instantClone)
 
         if _cloneOk then
             local _cloneSucceeded = false
@@ -15491,4 +15553,3 @@ end)
         _G.MynxxScannerReady = true -- TpOnLoad fast path waits on this
     end)
 end
-
