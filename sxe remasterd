@@ -97,6 +97,70 @@ pcall(function()
     end
 end)
 
+
+-- Fix spam: PhantomSpinWheel "Main is not a valid member" (erro infinito → lag)
+_phantomMainPart = nil
+function ensurePhantomSpinWheelMain()
+    local psw = Workspace:FindFirstChild("PhantomSpinWheel")
+    if not psw then return false end
+    if psw:FindFirstChild("Main") then return true end
+    -- Cria um Part invisível chamado "Main" para o script do jogo não dar erro
+    local part = _phantomMainPart
+    if not part or part.Parent ~= psw then
+        part = Instance.new("Part")
+        part.Name = "Main"
+        part.Anchored = true
+        part.CanCollide = false
+        part.CanQuery = false
+        part.CanTouch = false
+        part.Transparency = 1
+        part.Size = Vector3.new(0.2, 0.2, 0.2)
+        part.Archivable = false
+        pcall(function() part.CFrame = psw:GetPivot() end)
+        _phantomMainPart = part
+    end
+    part.Parent = psw
+    return true
+end
+
+ensurePhantomSpinWheelMain()
+Workspace.ChildAdded:Connect(function(child)
+    if child.Name == "PhantomSpinWheel" then
+        task.defer(ensurePhantomSpinWheelMain)
+    end
+end)
+task.spawn(function()
+    for _ = 1, 40 do
+        if ensurePhantomSpinWheelMain() then break end
+        task.wait(0.25)
+    end
+    -- Mantém vigilância: PhantomSpinWheel pode ser recriado pelo servidor
+    local _pswTick = 0
+    RunService.Heartbeat:Connect(function()
+        _pswTick = _pswTick + 1
+        if _pswTick % 60 == 0 then ensurePhantomSpinWheelMain() end
+    end)
+end)
+
+pcall(function()
+    if hookmetamethod then
+        -- Estende o hook existente de __index para também cobrir PhantomSpinWheel.Main
+        local _oldPswIdx
+        _oldPswIdx = hookmetamethod(game, "__index", function(self, key)
+            if key == "Main" and typeof(self) == "Instance"
+                and self:IsA("Model") and self.Name == "PhantomSpinWheel" then
+                local m = self:FindFirstChild("Main")
+                if not m then
+                    ensurePhantomSpinWheelMain()
+                    m = self:FindFirstChild("Main")
+                end
+                if m then return m end
+            end
+            return _oldPswIdx(self, key)
+        end)
+    end
+end)
+
 -- Insta-reset state captured by the FireServer hook below.
 -- GUID is the first arg of the balloon payload. Defaults to a randomly-generated
 -- UUID so the payload is at least syntactically valid (an empty string was
@@ -247,26 +311,6 @@ task.delay(4.0, function()
         end
     end
 end)
-
--- ============================================
--- FUNÇÃO DE SOM PRIORITÁRIO (INDEPENDENTE)
--- ============================================
-function PlayPrioritySound()
-    if not Config then return end
-    if Config.PrioritySoundAlert and Config.PrioritySoundID and Config.PrioritySoundID ~= "" then
-        pcall(function()
-            local sid = Config.PrioritySoundID:match("%d+")
-            if sid then
-                local snd = Instance.new("Sound")
-                snd.SoundId = "rbxassetid://" .. sid
-                snd.Volume = 1.5
-                snd.Parent = game:GetService("SoundService")
-                snd:Play()
-                game:GetService("Debris"):AddItem(snd, 5)
-            end
-        end)
-    end
-end
 
 player = Players.LocalPlayer
 playerGui = player:WaitForChild("PlayerGui")
@@ -991,7 +1035,13 @@ function refreshBrainrotESP()
     end end
 end
 function clearBrainrotESP() for _,e in pairs(brainrotBillboards) do if e.bb then e.bb:Destroy() end end; brainrotBillboards={} end
-task.spawn(function() while true do task.wait(0.3); if brainrotESPEnabled then pcall(refreshBrainrotESP) end end end)
+task.spawn(function()
+    local _espIsMobile = game:GetService("UserInputService").TouchEnabled
+    while true do
+        task.wait(_espIsMobile and 1.5 or 0.3)  -- celular: 1.5s para não travar
+        if brainrotESPEnabled then pcall(refreshBrainrotESP) end
+    end
+end)
 
 suffixes = {
     k = 1e3,
@@ -3037,6 +3087,12 @@ function invisTurnOn()
     tracks = {}; removeFolders()
     local success = doClone()
     if success then
+        -- Reclama Network Ownership logo ao clonar, antes de qualquer PreSimulation
+        pcall(function()
+            if sethiddenproperty and oldRoot and oldRoot.Parent then
+                sethiddenproperty(oldRoot, "NetworkOwnershipRule", 0)
+            end
+        end)
         task.wait(0.05); animationTrickery()
         task.defer(function()
             if _G.resetBrainrotBeam then pcall(_G.resetBrainrotBeam) end
@@ -3060,13 +3116,16 @@ function invisTurnOn()
                     elseif lastSetPosition and ghostEnabled then
                         local currentPos = oldRoot.Position
                         local jumpDist = (currentPos - lastSetPosition).Magnitude
-                        if jumpDist > 6 and not _G.RecoveryInProgress and player:GetAttribute("Stealing") then
+                        -- Detecta lagback mais cedo (4 studs em vez de 6)
+                        if jumpDist > 4 and not _G.RecoveryInProgress and player:GetAttribute("Stealing") then
                             lastSetPosition = nil; createServerGhost(currentPos)
                             if _G.AutoRecoverLagback and _G._forceInvisToggle then
                                 _G.RecoveryInProgress = true
                                 task.spawn(function()
-                                    pcall(_G._forceInvisToggle); task.wait(0.6)
+                                    -- Recovery rápido: 0.15s em vez de 0.6s
+                                    pcall(_G._forceInvisToggle); task.wait(0.15)
                                     if player:GetAttribute("Stealing") then
+                                        task.wait(0.1)
                                         pcall(_G._forceInvisToggle)
                                     end
                                     _G.RecoveryInProgress = false
@@ -3079,6 +3138,12 @@ function invisTurnOn()
                         for _, c in pairs(oldRoot:GetChildren()) do
                             if c:IsA("Attachment") or c:IsA("Beam") then c:Destroy() end
                         end
+                        -- Network Ownership no oldRoot: servidor não empurra de volta
+                        pcall(function()
+                            if sethiddenproperty then
+                                sethiddenproperty(oldRoot, "NetworkOwnershipRule", 0)
+                            end
+                        end)
                         local sa = (_G.SinkSliderValue or 7) * 0.5
                         local cf = root.CFrame - Vector3.new(0, sa, 0)
                         local rotAngle = _G.AutoRotateInvis and calculateAutoRotation() or (_G.InvisStealAngle or 225)
@@ -4684,12 +4749,22 @@ end
 -- PRIORITY ALERT (Mynxx Styled 3D Viewer with Sorting Queue)
 -- ============================================================
 function ShowPriorityAlertImpl(brainrotName, genText, mutation, ownerUsername, headerText)
-    -- 🔥 SOM TOCA IMEDIATAMENTE, INDEPENDENTE DE QUALQUER COISA
-    PlayPrioritySound()
-    
-    -- Agora sim, verifica se a notificação visual está desativada
+    -- Som toca SEMPRE que PrioritySoundAlert estiver ON, independente da notificação visual
+    if Config and Config.PrioritySoundAlert and Config.PrioritySoundID and Config.PrioritySoundID ~= "" then
+        pcall(function()
+            local sid = Config.PrioritySoundID:match("%d+")
+            if sid then
+                local snd = Instance.new("Sound")
+                snd.SoundId = "rbxassetid://" .. sid
+                snd.Volume = 1
+                snd.Parent = game:GetService("SoundService")
+                snd:Play()
+                game:GetService("Debris"):AddItem(snd, 5)
+            end
+        end)
+    end
+    -- Toggle "Brainrot Notification" (ESP tab). nil = old config = enabled.
     if Config and Config.BrainrotAlert == false then return end
-    
     local normalizedMutation = mutation and mutation:gsub("%s+", ""):lower() or ""
     
     local mutationColors = {
@@ -4721,20 +4796,6 @@ function ShowPriorityAlertImpl(brainrotName, genText, mutation, ownerUsername, h
     
     local existing = ExploitGui:FindFirstChild("XiPriorityAlertTest")
     if existing then existing:Destroy() end
-    
-    if Config.PrioritySoundAlert and Config.PrioritySoundID and Config.PrioritySoundID ~= "" then
-        pcall(function()
-            local sid = Config.PrioritySoundID:match("%d+")
-            if sid then
-                local snd = Instance.new("Sound")
-                snd.SoundId = "rbxassetid://" .. sid
-                snd.Volume = 1
-                snd.Parent = game:GetService("SoundService")
-                snd:Play()
-                game:GetService("Debris"):AddItem(snd, 5)
-            end
-        end)
-    end
     
     -- NOTE: no addLazyUI here. It set Enabled=false and relied on the ONE-SHOT
     -- 4s lazy-UI sweep to re-enable: any alert fired AFTER that sweep stayed
@@ -6246,11 +6307,23 @@ function velMoveThrough(hrp, waypoints, speedOverride, allowJump, quickStart)
         end
     end
 
+    -- Reclama Network Ownership: servidor não corrige posição durante TP
+    pcall(function()
+        if sethiddenproperty and hrp and hrp.Parent then
+            sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+        end
+    end)
     conn = RunService.Heartbeat:Connect(function()
         if not hrp or not hrp.Parent or done then
             if conn then conn:Disconnect() end
             return
         end
+        -- Mantém Network Ownership a cada frame (pode ser resetado pelo jogo)
+        pcall(function()
+            if sethiddenproperty and hrp and hrp.Parent then
+                sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+            end
+        end)
         equipCarpet()
         local target = waypoints[wpIdx]
         local diff = target - hrp.Position
@@ -6281,7 +6354,8 @@ function velMoveThrough(hrp, waypoints, speedOverride, allowJump, quickStart)
             local _sp = _runSpeed
             local _vy = dir.Y * _sp
             if _vy > MAX_CLIMB then _vy = MAX_CLIMB end
-            hrp.Velocity = Vector3.new(dir.X * _sp, _vy, dir.Z * _sp)
+            -- AssemblyLinearVelocity é mais direto que .Velocity (menos rollback)
+            hrp.AssemblyLinearVelocity = Vector3.new(dir.X * _sp, _vy, dir.Z * _sp)
         end
     end)
     local totalDist = 0
@@ -9243,9 +9317,14 @@ SharedState.ANTI_BEE_DISCO.protectControls = function()
         table.insert(ab.connections, RunService.Heartbeat:Connect(function()
             if not ab.running or not Config.AntiBeeDisco then return end
             if _G._isTpMoving then return end
-            if Controls.moveFunction ~= protectedMoveFunction then
-                Controls.moveFunction = protectedMoveFunction
-            end
+            pcall(function()
+                local PM2 = LocalPlayer.PlayerScripts:FindFirstChild("PlayerModule")
+                if not PM2 then return end
+                local Ctrl2 = require(PM2):GetControls()
+                if Ctrl2 and Ctrl2.moveFunction ~= protectedMoveFunction then
+                    Ctrl2.moveFunction = protectedMoveFunction
+                end
+            end)
         end))
         Controls.moveFunction = protectedMoveFunction
         ab.controlsProtected = true
@@ -9301,12 +9380,19 @@ end
 
 SharedState.ANTI_BEE_DISCO.blockBuzzingSound = function()
     pcall(function()
-        local beeScript = LocalPlayer.PlayerScripts:FindFirstChild("Bee", true)
-        if beeScript then
-            local buzzing = beeScript:FindFirstChild("Buzzing")
-            if buzzing and buzzing:IsA("Sound") then
-                buzzing:Stop()
-                buzzing.Volume = 0
+        local roots = {LocalPlayer.PlayerScripts}
+        if LocalPlayer.Character then roots[#roots+1] = LocalPlayer.Character end
+        for _, root in ipairs(roots) do
+            for _, obj in ipairs(root:GetDescendants()) do
+                if obj:IsA("Sound") then
+                    local n = obj.Name:lower()
+                    local id2 = (obj.SoundId or ""):lower()
+                    if n:find("buzz") or n:find("bee") or id2:find("buzz") or id2:find("bee") then
+                        if obj.IsPlaying or obj.Volume > 0 then
+                            obj:Stop(); obj.Volume = 0
+                        end
+                    end
+                end
             end
         end
     end)
@@ -9326,9 +9412,13 @@ SharedState.ANTI_BEE_DISCO.Enable = function()
     ab.protectControls()
     -- Trava FOV (COMENTADO PARA NÃO BLOQUEAR O SLIDER)
     -- ab.lockCamera()
-    -- Bloqueia som do bee
+    -- Bloqueia som do bee (debounce 0.5s, evita freeze em celular)
+    local _abBuzzTick = 0
     table.insert(ab.connections, RunService.Heartbeat:Connect(function()
         if not ab.running or not Config.AntiBeeDisco then return end
+        local now2 = os.clock()
+        if now2 - _abBuzzTick < 0.5 then return end
+        _abBuzzTick = now2
         ab.blockBuzzingSound()
     end))
     ShowNotification("ANTIBEE & DISCO", "Enabled")
@@ -14023,10 +14113,22 @@ do
                 if not hrp or not hrp.Parent then return end
             end
         end
+        -- Reclama Network Ownership antes do loop de movimento (inner velMoveThrough)
+        pcall(function()
+            if sethiddenproperty and hrp and hrp.Parent then
+                sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+            end
+        end)
         conn = RunService.Heartbeat:Connect(function()
             if not hrp or not hrp.Parent or done then
                 if conn then conn:Disconnect() end; return
             end
+            -- Mantém Network Ownership frame a frame (inner)
+            pcall(function()
+                if sethiddenproperty and hrp and hrp.Parent then
+                    sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+                end
+            end)
             equipCarpet()
             local target = waypoints[wpIdx]
             local diff = target - hrp.Position
@@ -14056,7 +14158,8 @@ do
                 end
                 local _vy = dir.Y * _runSpeed
                 if _vy > MAX_CLIMB then _vy = MAX_CLIMB end
-                hrp.Velocity = Vector3.new(dir.X * _runSpeed, _vy, dir.Z * _runSpeed)
+                -- AssemblyLinearVelocity em vez de .Velocity (inner)
+                hrp.AssemblyLinearVelocity = Vector3.new(dir.X * _runSpeed, _vy, dir.Z * _runSpeed)
             end
         end)
         local totalDist = 0
@@ -14723,6 +14826,12 @@ do
             end)
             local _route = computeRoute(hrp.Position, _to, nil)
             if not _route or #_route == 0 then _route = { _to } end
+            -- Network Ownership antes do velMoveThrough final (goToBrainrot)
+            pcall(function()
+                if sethiddenproperty and hrp and hrp.Parent then
+                    sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+                end
+            end)
             velMoveThrough(hrp, _route, (Config and Config.TpSettings and (tonumber(Config.TpSettings.WalkTPSpeed) or tonumber(Config.TpSettings.GrabbleTPSpeed))) or MynxxSpeed.INBASE, true, true)
             for _, _r in ipairs(_noclip) do
                 pcall(function() _r.p.CanCollide = _r.v end)
@@ -14873,6 +14982,20 @@ do
     local function _pickByMode(pets)
         if not pets or #pets == 0 then return nil end
         local C = Config or {}
+        -- Aplica filtro Min Gen antes de tudo
+        do
+            local mgStr = (C.StealNearest and C.TpSettings and C.TpSettings.MinGenForGrab)
+                       or (C.TpSettings and C.TpSettings.MinGenForTp) or ""
+            local mg = parseMinGen and parseMinGen(mgStr) or 0
+            if mg and mg > 0 then
+                local _filt = {}
+                for _, p in ipairs(pets) do
+                    local gv = p.mps or p.mpsValue or p.genValue or 0
+                    if gv >= mg then _filt[#_filt+1] = p end
+                end
+                if #_filt > 0 then pets = _filt end
+            end
+        end
         -- PRIORITY FIRST -- ALWAYS, whatever the mode (same rule as the outer
         -- getTargetPetData: "priority pets before anything else"). It used to be
         -- gated behind Auto-TP Priority / Steal Priority: in Highest mode a
@@ -15087,6 +15210,12 @@ do
             end)
             carpetEngage()
             vZero(hrp)
+            -- Network Ownership no conveyor branch também
+            pcall(function()
+                if sethiddenproperty and hrp and hrp.Parent then
+                    sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+                end
+            end)
             local function livePos()
                 if not model or not model.Parent then return nil end
                 local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
@@ -15135,6 +15264,13 @@ do
 
         carpetEngage()
         vZero(hrp)
+
+        -- Reclamar Network Ownership: bloqueia correção de posição pelo servidor
+        pcall(function()
+            if sethiddenproperty and hrp and hrp.Parent then
+                sethiddenproperty(hrp, "NetworkOwnershipRule", 0)
+            end
+        end)
 
         local facingDir = closestData.facing == "NORTH" and Vector3.new(0, 0, -1) or Vector3.new(0, 0, 1)
         do
@@ -15226,6 +15362,30 @@ do
                 return
             end
         end
+
+        -- GANCHO: aciona prompt via firetouchinterest logo ao chegar (mais rápido)
+        pcall(function()
+            local _gPrompt = findStealPrompt(pet)
+            if _gPrompt and _gPrompt.Parent then
+                local _gPart = _gPrompt.Parent
+                local _gOldMax = _gPrompt.MaxActivationDistance
+                _gPrompt.MaxActivationDistance = math.huge
+                local _gHrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if _gHrp then
+                    if typeof(firetouchinterest) == "function" and _gPart:IsA("BasePart") then
+                        pcall(firetouchinterest, _gHrp, _gPart, 0)
+                        task.wait(0.03)
+                        pcall(firetouchinterest, _gHrp, _gPart, 0)
+                    end
+                    if typeof(fireclickdetector) == "function" then
+                        for _, _gCd in ipairs(_gPart:GetChildren()) do
+                            if _gCd:IsA("ClickDetector") then pcall(fireclickdetector, _gCd) end
+                        end
+                    end
+                end
+                pcall(function() _gPrompt.MaxActivationDistance = _gOldMax end)
+            end
+        end)
 
         hrp.CFrame = CFrame.new(destPos, destPos + facingDir)
         vZero(hrp)
@@ -15433,6 +15593,7 @@ task.spawn(function()
 
     -- Monitora o atributo Stealing
     LocalPlayer:GetAttributeChangedSignal("Stealing"):Connect(function()
+        if _G.invisibleStealEnabled then return end  -- ignorar durante invisible steal
         local isStealing = LocalPlayer:GetAttribute("Stealing") == true
         
         -- Se estava roubando e parou de roubar
@@ -15468,6 +15629,7 @@ task.spawn(function()
     while true do
         task.wait(0.1)
         if not _G.antiSwapEnabled then continue end
+        if _G.invisibleStealEnabled then continue end  -- ignorar durante invisible steal
 
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -15553,3 +15715,4 @@ end)
         _G.MynxxScannerReady = true -- TpOnLoad fast path waits on this
     end)
 end
+
