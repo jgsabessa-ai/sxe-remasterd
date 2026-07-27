@@ -13199,6 +13199,13 @@ if Config.TpSettings.TpOnLoad then
             warn("[TP On Load] Scanner não ficou pronto a tempo, tentando TP mesmo assim.")
         end
 
+local function quickGrappleSim()
+    -- Dispara o Remote rapidamente
+    if NetModule and NetModule:RemoteEvent("UseItem") then
+        pcall(function() NetModule:RemoteEvent("UseItem"):FireServer(2) end)
+    end
+end
+quickGrappleSim()
 
         local function doTP()
             if _G.MynxxStartSideTP then
