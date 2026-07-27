@@ -9252,7 +9252,7 @@ end -- END X-RAY SCOPE
 
 
 -- ============================================================
--- ANTI BEE & DISCO (FIX: FOV desbloqueado + movimento mobile)
+-- ANTI BEE & DISCO (FIX: FOV bloqueado em 100 + movimento mobile)
 -- ============================================================
 SharedState.ANTI_BEE_DISCO = {
     running = false,
@@ -9317,14 +9317,9 @@ SharedState.ANTI_BEE_DISCO.protectControls = function()
         table.insert(ab.connections, RunService.Heartbeat:Connect(function()
             if not ab.running or not Config.AntiBeeDisco then return end
             if _G._isTpMoving then return end
-            pcall(function()
-                local PM2 = LocalPlayer.PlayerScripts:FindFirstChild("PlayerModule")
-                if not PM2 then return end
-                local Ctrl2 = require(PM2):GetControls()
-                if Ctrl2 and Ctrl2.moveFunction ~= protectedMoveFunction then
-                    Ctrl2.moveFunction = protectedMoveFunction
-                end
-            end)
+            if Controls.moveFunction ~= protectedMoveFunction then
+                Controls.moveFunction = protectedMoveFunction
+            end
         end))
         Controls.moveFunction = protectedMoveFunction
         ab.controlsProtected = true
@@ -9345,21 +9340,22 @@ SharedState.ANTI_BEE_DISCO.restoreControls = function()
     end)
 end
 
--- TRAVA FOV (REMOVER SE NÃO QUISER BLOQUEAR O SLIDER)
--- Se quiser manter a trava, descomente. Se não, mantenha comentado.
+-- TRAVA FOV em 100 (sempre ativa enquanto o AntiBee estiver rodando)
 SharedState.ANTI_BEE_DISCO.lockCamera = function()
     local ab = SharedState.ANTI_BEE_DISCO
     if ab.cameraLockConn then return end
     local cam = workspace.CurrentCamera
     if not cam then return end
+    -- Guarda o FOV original apenas para restauração, mas forçamos 100
     ab.originalFOV = cam.FieldOfView
     ab.cameraLockConn = RunService.RenderStepped:Connect(function()
         if not ab.running or not Config.AntiBeeDisco then
             return
         end
         pcall(function()
-            if cam.FieldOfView ~= (ab.originalFOV or 70) then
-                cam.FieldOfView = ab.originalFOV or 70
+            -- Força o FOV para 100
+            if cam.FieldOfView ~= 100 then
+                cam.FieldOfView = 100
             end
         end)
     end)
@@ -9374,25 +9370,19 @@ SharedState.ANTI_BEE_DISCO.restoreCamera = function()
     end
     local cam = workspace.CurrentCamera
     if cam and ab.originalFOV then
+        -- Restaura o FOV original (caso desative)
         cam.FieldOfView = ab.originalFOV
     end
 end
 
 SharedState.ANTI_BEE_DISCO.blockBuzzingSound = function()
     pcall(function()
-        local roots = {LocalPlayer.PlayerScripts}
-        if LocalPlayer.Character then roots[#roots+1] = LocalPlayer.Character end
-        for _, root in ipairs(roots) do
-            for _, obj in ipairs(root:GetDescendants()) do
-                if obj:IsA("Sound") then
-                    local n = obj.Name:lower()
-                    local id2 = (obj.SoundId or ""):lower()
-                    if n:find("buzz") or n:find("bee") or id2:find("buzz") or id2:find("bee") then
-                        if obj.IsPlaying or obj.Volume > 0 then
-                            obj:Stop(); obj.Volume = 0
-                        end
-                    end
-                end
+        local beeScript = LocalPlayer.PlayerScripts:FindFirstChild("Bee", true)
+        if beeScript then
+            local buzzing = beeScript:FindFirstChild("Buzzing")
+            if buzzing and buzzing:IsA("Sound") then
+                buzzing:Stop()
+                buzzing.Volume = 0
             end
         end
     end)
@@ -9410,15 +9400,11 @@ SharedState.ANTI_BEE_DISCO.Enable = function()
     end))
     -- Protege controles
     ab.protectControls()
-    -- Trava FOV (COMENTADO PARA NÃO BLOQUEAR O SLIDER)
-    -- ab.lockCamera()
-    -- Bloqueia som do bee (debounce 0.5s, evita freeze em celular)
-    local _abBuzzTick = 0
+    -- Trava FOV em 100 (AGORA ATIVO)
+    ab.lockCamera()
+    -- Bloqueia som do bee
     table.insert(ab.connections, RunService.Heartbeat:Connect(function()
         if not ab.running or not Config.AntiBeeDisco then return end
-        local now2 = os.clock()
-        if now2 - _abBuzzTick < 0.5 then return end
-        _abBuzzTick = now2
         ab.blockBuzzingSound()
     end))
     ShowNotification("ANTIBEE & DISCO", "Enabled")
@@ -9441,6 +9427,8 @@ if Config.AntiBeeDisco then
         if SharedState.ANTI_BEE_DISCO.Enable then SharedState.ANTI_BEE_DISCO.Enable() end
     end)
 end
+
+
 -- ============================================================-- ============================================================
 -- AUTO BUY 
 -- ============================================================
@@ -13210,6 +13198,8 @@ if Config.TpSettings.TpOnLoad then
         if not scannerReady then
             warn("[TP On Load] Scanner não ficou pronto a tempo, tentando TP mesmo assim.")
         end
+
+
         local function doTP()
             if _G.MynxxStartSideTP then
                 pcall(_G.MynxxStartSideTP)
@@ -14754,6 +14744,12 @@ do
     end
 
     local function goToBrainrot(petPos)
+if NetModule then
+    local useRemote = NetModule:RemoteEvent("UseItem")
+    if useRemote then
+        pcall(function() useRemote:FireServer(2) end)
+    end
+end
         if not petPos then return end
         local char, hrp, hum
         local _t0 = os.clock()
@@ -15194,6 +15190,67 @@ do
         local petPos = pet.position
         local petName = pet.name
 
+    -- ===== 2) SIMULAR O CLICK DO GRAPPLE (CRUCIAL) =====
+    local function simulateGrappleClick()
+        -- Tenta encontrar o Grapple Hook no inventário ou no personagem
+        local grappleTool = nil
+        for _, name in ipairs(GRAPPLE_NAMES) do
+            local tool = findTool(name)
+            if tool then grappleTool = tool; break end
+        end
+
+        if not grappleTool then
+            warn("[TP] Grapple Hook não encontrado!")
+            return false
+        end
+
+        -- Equipa a ferramenta
+        if grappleTool.Parent ~= char then
+            pcall(function() hum:EquipTool(grappleTool) end)
+            task.wait(0.3)
+        end
+
+        -- Verifica se equipou
+        if grappleTool.Parent ~= char then
+            warn("[TP] Falha ao equipar Grapple Hook!")
+            return false
+        end
+
+        -- 1) Tenta ativar diretamente (simula clique)
+        pcall(function() grappleTool:Activate() end)
+
+        -- 2) Chama o RemoteEvent (UseItem com ID 2 = Grapple)
+        if NetModule then
+            pcall(function() NetModule:RemoteEvent("UseItem"):FireServer(2) end)
+        end
+
+        -- 3) Tenta disparar o clique nos botões da GUI (caso exista)
+        local playerGui = LP:FindFirstChildOfClass("PlayerGui")
+        if playerGui then
+            for _, gui in ipairs(playerGui:GetDescendants()) do
+                if gui:IsA("TextButton") and gui.Name:find("Grapple") then
+                    pcall(firesignal, gui.MouseButton1Click)
+                    pcall(firesignal, gui.MouseButton1Down)
+                    pcall(firesignal, gui.Activated)
+                end
+            end
+        end
+
+        -- Verifica se o Grapple foi realmente ativado (ex: atributo ou efeito visual)
+        -- Se não tiver um indicador, apenas confia que funcionou.
+        return true
+    end
+
+    -- Executa a simulação do clique
+    local grappleSuccess = simulateGrappleClick()
+    if not grappleSuccess then
+        -- Fallback: tenta novamente com um delay maior
+        warn("[TP] Tentando novamente simular o Grapple...")
+
+        simulateGrappleClick()
+    end
+
+
         local _diedDuringTP = false
         local _diedConn = hum.Died:Connect(function() _diedDuringTP = true end)
 
@@ -15466,7 +15523,7 @@ do
             end
             if _caConn then _caConn:Disconnect() end
             if _cloneSucceeded and not _diedDuringTP then
-                task.wait(0.5)
+                task.wait(0.2)
                 goToBrainrot(petPos)
             end
         else
@@ -15491,6 +15548,10 @@ do
             task.spawn(function() pcall(doVelocityTP) end)
         end
     end)
+
+-- Sobrescreve a função global
+_G.MynxxStartSideTP = doVelocityTP
+_G.doGrabbleVelocityTP = doVelocityTP
 
 -- ============================================================
 -- ANTI BODY SWAP DE POSIÇÃO (SXE Remasterd) - VERSÃO MELHORADA
@@ -15715,4 +15776,3 @@ end)
         _G.MynxxScannerReady = true -- TpOnLoad fast path waits on this
     end)
 end
-
